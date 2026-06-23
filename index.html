@@ -153,19 +153,6 @@ svg{
     color:var(--h2);
 }
 
-.upload-btn{
-    padding:9px 18px;
-    background:#1976d2;
-    color:#fff;
-    border:none;
-    border-radius:8px;
-    font-size:14px;
-    font-family:inherit;
-    cursor:pointer;
-    white-space:nowrap;
-}
-
-.upload-btn:hover{ background:#1565c0; }
 
 .single-image-wrap{
     width:100%;
@@ -241,33 +228,36 @@ svg{
 <div id="page-hall" class="page img-page">
     <div class="img-page-header">
         <h2>대강당 자리배치도</h2>
-        <button class="upload-btn" onclick="triggerUpload('hall')">+ 이미지 추가</button>
     </div>
-    <div class="single-image-wrap" id="img-hall"></div>
-    <p class="empty-msg" id="empty-hall">이미지를 추가해주세요</p>
-    <input type="file" id="file-hall" accept="image/*" hidden>
+    <div class="single-image-wrap">
+        <img src="img/hall.jpg" alt="대강당 자리배치도"
+             onerror="this.style.display='none';document.getElementById('empty-hall').style.display='block'">
+    </div>
+    <p class="empty-msg" id="empty-hall" style="display:none">이미지를 준비 중입니다</p>
 </div>
 
 <!-- 식사순서 -->
 <div id="page-meal" class="page img-page">
     <div class="img-page-header">
         <h2>식사순서</h2>
-        <button class="upload-btn" onclick="triggerUpload('meal')">+ 이미지 추가</button>
     </div>
-    <div class="single-image-wrap" id="img-meal"></div>
-    <p class="empty-msg" id="empty-meal">이미지를 추가해주세요</p>
-    <input type="file" id="file-meal" accept="image/*" hidden>
+    <div class="single-image-wrap">
+        <img src="img/meal.jpg" alt="식사순서"
+             onerror="this.style.display='none';document.getElementById('empty-meal').style.display='block'">
+    </div>
+    <p class="empty-msg" id="empty-meal" style="display:none">이미지를 준비 중입니다</p>
 </div>
 
 <!-- 과제제출일정 -->
 <div id="page-schedule" class="page img-page">
     <div class="img-page-header">
         <h2>과제제출일정</h2>
-        <button class="upload-btn" onclick="triggerUpload('schedule')">+ 이미지 추가</button>
     </div>
-    <div class="single-image-wrap" id="img-schedule"></div>
-    <p class="empty-msg" id="empty-schedule">이미지를 추가해주세요</p>
-    <input type="file" id="file-schedule" accept="image/*" hidden>
+    <div class="single-image-wrap">
+        <img src="img/schedule.jpg" alt="과제제출일정"
+             onerror="this.style.display='none';document.getElementById('empty-schedule').style.display='block'">
+    </div>
+    <p class="empty-msg" id="empty-schedule" style="display:none">이미지를 준비 중입니다</p>
 </div>
 
 <!-- 라이트박스 -->
@@ -405,38 +395,6 @@ function draw(){
 
 draw();
 
-/* ── 단일 이미지 관리 ── */
-function triggerUpload(key){
-    document.getElementById('file-'+key).click();
-}
-
-function renderImage(key){
-    const data  = localStorage.getItem('img-'+key);
-    const wrap  = document.getElementById('img-'+key);
-    const empty = document.getElementById('empty-'+key);
-    if(data){
-        wrap.innerHTML = `<img src="${data}" alt="" onclick="openLightbox('${data}')">`;
-        empty.style.display = 'none';
-    } else {
-        wrap.innerHTML = '';
-        empty.style.display = 'block';
-    }
-}
-
-['hall','meal','schedule'].forEach(key=>{
-    document.getElementById('file-'+key).addEventListener('change', e=>{
-        const file = e.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = ev=>{
-            localStorage.setItem('img-'+key, ev.target.result);
-            renderImage(key);
-        };
-        reader.readAsDataURL(file);
-        e.target.value='';
-    });
-    renderImage(key);
-});
 
 /* ── 라이트박스 ── */
 function openLightbox(src){
