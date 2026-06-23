@@ -32,21 +32,6 @@ h1{
     margin-bottom:20px;
 }
 
-input{
-    width:280px;
-    padding:12px;
-    font-size:16px;
-    border:1px solid #ccc;
-    border-radius:8px;
-}
-
-.result{
-    margin-top:12px;
-    font-size:20px;
-    font-weight:bold;
-    color:#1976d2;
-}
-
 svg{
     width:100%;
     max-width:1100px;
@@ -58,16 +43,6 @@ svg{
     fill:#ececec;
     stroke:#888;
     stroke-width:2;
-}
-
-.highlight{
-    fill:#ffe44d;
-    stroke:#f57f17;
-    stroke-width:4;
-}
-
-.arrow{
-    fill:red;
 }
 
 .label{
@@ -97,13 +72,6 @@ svg{
 <h1>17분임 오늘의 자리배치</h1>
 
 <div class="date" id="today"></div>
-
-<input
-id="searchInput"
-placeholder="이름을 입력하세요"
-/>
-
-<div class="result" id="result"></div>
 
 <svg
 id="seatMap"
@@ -191,8 +159,6 @@ function create(tag){
     );
 }
 
-const seatPositions = {};
-
 function draw(){
 
     svg.innerHTML="";
@@ -259,11 +225,6 @@ function draw(){
 
 function createSeat(name,x,y){
 
-    seatPositions[name] = {
-        x:x,
-        y:y
-    };
-
     const rect = create("rect");
 
     rect.setAttribute("x",x);
@@ -289,123 +250,6 @@ function createSeat(name,x,y){
 }
 
 draw();
-
-function positionText(name){
-
-    if(name===seats.head){
-        return "상석";
-    }
-
-    let idx =
-    seats.left.indexOf(name);
-
-    if(idx!==-1){
-        return `왼쪽 ${idx+1}번 자리`;
-    }
-
-    idx =
-    seats.right.indexOf(name);
-
-    if(idx!==-1){
-        return `오른쪽 ${idx+1}번 자리`;
-    }
-
-    return null;
-}
-
-function removeArrow(){
-
-    const old =
-    document.getElementById("arrow");
-
-    if(old){
-        old.remove();
-    }
-}
-
-function drawArrow(name){
-
-    removeArrow();
-
-    const pos =
-    seatPositions[name];
-
-    if(!pos) return;
-
-    const arrow =
-    create("polygon");
-
-    arrow.setAttribute(
-        "points",
-        `${pos.x-35},${pos.y+25}
-         ${pos.x-5},${pos.y+10}
-         ${pos.x-5},${pos.y+40}`
-    );
-
-    arrow.setAttribute(
-        "class",
-        "arrow"
-    );
-
-    arrow.setAttribute(
-        "id",
-        "arrow"
-    );
-
-    svg.appendChild(arrow);
-}
-
-document
-.getElementById("searchInput")
-.addEventListener("input",e=>{
-
-    const value =
-    e.target.value.trim();
-
-    document
-    .querySelectorAll(".seat")
-    .forEach(seat=>{
-
-        seat.classList.remove(
-            "highlight"
-        );
-
-    });
-
-    removeArrow();
-
-    const result =
-    positionText(value);
-
-    if(!result){
-
-        document
-        .getElementById("result")
-        .innerText="";
-
-        return;
-    }
-
-    document
-    .getElementById("result")
-    .innerText =
-    `${value}님의 자리 : ${result}`;
-
-    const seat =
-    document.getElementById(
-        "seat-"+value
-    );
-
-    if(seat){
-
-        seat.classList.add(
-            "highlight"
-        );
-
-        drawArrow(value);
-    }
-
-});
 
 </script>
 
