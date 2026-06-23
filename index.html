@@ -1,304 +1,392 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>17분임 오늘의 자리배치</title>
-
 <style>
 
-*{
-    box-sizing:border-box;
-}
+*{ box-sizing:border-box; margin:0; padding:0; }
 
 body{
-    margin:0;
     background:#f4f6f8;
     font-family:"Malgun Gothic",sans-serif;
+}
+
+/* ── 네비게이션 ── */
+nav{
+    position:fixed;
+    top:0; left:0;
+    width:100%;
+    background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.1);
+    display:flex;
+    gap:4px;
+    padding:10px 16px;
+    z-index:100;
+}
+
+.nav-btn{
+    padding:8px 18px;
+    border:none;
+    border-radius:8px;
+    font-size:15px;
+    font-family:inherit;
+    cursor:pointer;
+    background:transparent;
+    color:#555;
+    transition:background .15s,color .15s;
+}
+
+.nav-btn.active{
+    background:#1976d2;
+    color:#fff;
+    font-weight:bold;
+}
+
+/* ── 페이지 공통 ── */
+.page{ display:none; padding-top:64px; }
+.page.active{ display:block; }
+
+/* ── 홈 ── */
+#page-home{
     text-align:center;
+    padding-top:74px;
 }
 
-.container{
-    padding:20px;
-}
+#page-home h1{ margin-bottom:8px; }
 
-h1{
-    margin-bottom:10px;
-}
-
-.date{
-    color:#666;
-    margin-bottom:20px;
-}
+.date{ color:#666; margin-bottom:10px; }
 
 svg{
     width:100%;
     max-width:1100px;
     height:auto;
-    margin-top:30px;
+    margin-top:20px;
 }
 
-.seat{
-    fill:#ececec;
-    stroke:#888;
-    stroke-width:2;
+.seat{ fill:#ececec; stroke:#888; stroke-width:2; }
+.label{ font-size:14px; font-weight:bold; }
+.dday{ font-size:11px; fill:#888; }
+.table{ fill:white; stroke:#333; stroke-width:5; }
+.entrance{ font-size:28px; font-weight:bold; fill:#444; }
+
+/* ── 과제제출일정 ── */
+#page-schedule{
+    padding:74px 24px 40px;
 }
 
-.label{
+.schedule-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+}
+
+.schedule-header h2{
+    font-size:22px;
+    color:#333;
+}
+
+.upload-btn{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:9px 18px;
+    background:#1976d2;
+    color:#fff;
+    border:none;
+    border-radius:8px;
     font-size:14px;
-    font-weight:bold;
+    font-family:inherit;
+    cursor:pointer;
 }
 
-.dday{
-    font-size:11px;
-    fill:#888;
+.upload-btn:hover{ background:#1565c0; }
+
+.image-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+    gap:16px;
 }
 
-.table{
-    fill:white;
-    stroke:#333;
-    stroke-width:5;
+.image-card{
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+    overflow:hidden;
+    position:relative;
 }
 
-.entrance{
-    font-size:28px;
-    font-weight:bold;
-    fill:#444;
+.image-card img{
+    width:100%;
+    display:block;
+    cursor:pointer;
+}
+
+.image-card .delete-btn{
+    position:absolute;
+    top:8px; right:8px;
+    background:rgba(0,0,0,.5);
+    color:#fff;
+    border:none;
+    border-radius:50%;
+    width:28px; height:28px;
+    font-size:16px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+}
+
+.empty-msg{
+    color:#aaa;
+    font-size:16px;
+    text-align:center;
+    margin-top:60px;
+}
+
+/* ── 이미지 전체화면 ── */
+.lightbox{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.85);
+    z-index:200;
+    align-items:center;
+    justify-content:center;
+}
+
+.lightbox.open{ display:flex; }
+
+.lightbox img{
+    max-width:92vw;
+    max-height:92vh;
+    border-radius:8px;
+}
+
+.lightbox-close{
+    position:fixed;
+    top:16px; right:20px;
+    color:#fff;
+    font-size:32px;
+    cursor:pointer;
+    background:none;
+    border:none;
+    line-height:1;
 }
 
 </style>
-
 </head>
 <body>
 
-<div class="container">
+<!-- 네비게이션 -->
+<nav>
+    <button class="nav-btn active" onclick="showPage('home')">홈(자리배치)</button>
+    <button class="nav-btn" onclick="showPage('schedule')">과제제출일정</button>
+</nav>
 
-<h1>17분임 오늘의 자리배치</h1>
+<!-- 홈 -->
+<div id="page-home" class="page active">
+    <h1>17분임 오늘의 자리배치</h1>
+    <div class="date" id="today"></div>
+    <svg id="seatMap" viewBox="0 0 1100 1040"></svg>
+</div>
 
-<div class="date" id="today"></div>
+<!-- 과제제출일정 -->
+<div id="page-schedule" class="page">
+    <div class="schedule-header">
+        <h2>과제제출일정</h2>
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+            + 이미지 추가
+        </button>
+        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+    </div>
+    <div class="image-grid" id="imageGrid"></div>
+    <p class="empty-msg" id="emptyMsg">이미지를 추가해주세요</p>
+</div>
 
-<svg
-id="seatMap"
-viewBox="0 0 1100 1040"> </svg>
-
+<!-- 전체화면 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightboxImg" src="" alt="">
 </div>
 
 <script>
 
+/* ── 페이지 전환 ── */
+function showPage(id){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-'+id).classList.add('active');
+    event.target.classList.add('active');
+}
+
+/* ── 자리배치 ── */
 const BIRTHDAYS = {
-    "황민중":[3,4],
-    "위성군":[7,17],
-    "이현정":[1,13],
-    "김도원":[6,1],
-    "이예지":[5,8],
-    "정현구":[8,24],
-    "정수민":[7,19],
-    "고은지":[11,11],
-    "박상우":[6,5],
-    "조혜연":[5,10],
-    "이남기":[10,15],
-    "강예나":[4,21],
-    "최서린":[8,15],
-    "최민기":[10,11],
-    "김우빈":[6,19]
+    "황민중":[3,4], "위성군":[7,17], "이현정":[1,13],
+    "김도원":[6,1], "이예지":[5,8],  "정현구":[8,24],
+    "정수민":[7,19],"고은지":[11,11],"박상우":[6,5],
+    "조혜연":[5,10],"이남기":[10,15],"강예나":[4,21],
+    "최서린":[8,15],"최민기":[10,11],"김우빈":[6,19]
 };
 
 function getDday(name){
     if(!BIRTHDAYS[name]) return "생일을 알려주세요";
     const [month,day] = BIRTHDAYS[name];
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0,0,0,0);
     let bday = new Date(today.getFullYear(), month-1, day);
-    if(bday <= today){
-        bday = new Date(today.getFullYear()+1, month-1, day);
-    }
+    if(bday <= today) bday = new Date(today.getFullYear()+1, month-1, day);
     const diff = Math.round((bday-today)/(1000*60*60*24));
     return diff===0 ? "🎂 생일" : "D-"+diff+"일";
 }
 
 const MEMBERS = [
-"강예나",
-"고은지",
-"권회민",
-"김도원",
-"김우빈",
-"나현빈",
-"박상우",
-"위성군",
-"이남기",
-"이예지",
-"이현정",
-"정수민",
-"정현구",
-"조혜연",
-"최민기",
-"최서린",
-"황민중"
+    "강예나","고은지","권회민","김도원","김우빈",
+    "나현빈","박상우","위성군","이남기","이예지",
+    "이현정","정수민","정현구","조혜연","최민기",
+    "최서린","황민중"
 ];
 
 function getSeed(){
-
     const d = new Date();
-
-    return Number(
-        d.getFullYear().toString() +
+    return Number(d.getFullYear().toString() +
         String(d.getMonth()+1).padStart(2,"0") +
-        String(d.getDate()).padStart(2,"0")
-    );
+        String(d.getDate()).padStart(2,"0"));
 }
 
 function shuffle(arr,seed){
-
-    const copy=[...arr];
-
-    let r=seed;
-
+    const copy=[...arr]; let r=seed;
     for(let i=copy.length-1;i>0;i--){
-
         r=(r*9301+49297)%233280;
-
-        const j=Math.floor(
-            (r/233280)*(i+1)
-        );
-
-        [copy[i],copy[j]]
-        =
-        [copy[j],copy[i]];
+        const j=Math.floor((r/233280)*(i+1));
+        [copy[i],copy[j]]=[copy[j],copy[i]];
     }
-
     return copy;
 }
 
-const shuffled =
-shuffle(MEMBERS,getSeed());
-
+const shuffled = shuffle(MEMBERS, getSeed());
 const seats = {
-    head : shuffled[0],
-    left : shuffled.slice(1,9),
-    right : shuffled.slice(9,17)
+    head:  shuffled[0],
+    left:  shuffled.slice(1,9),
+    right: shuffled.slice(9,17)
 };
 
-document.getElementById("today").innerText =
-new Date().toLocaleDateString();
+document.getElementById("today").innerText = new Date().toLocaleDateString();
 
-const svg =
-document.getElementById("seatMap");
-
-const SVG_NS =
-"http://www.w3.org/2000/svg";
-
-function create(tag){
-    return document.createElementNS(
-        SVG_NS,
-        tag
-    );
-}
-
-function draw(){
-
-    svg.innerHTML="";
-
-    const table = create("rect");
-
-    table.setAttribute("x",350);
-    table.setAttribute("y",150);
-    table.setAttribute("width",400);
-    table.setAttribute("height",730);
-    table.setAttribute("rx",20);
-    table.setAttribute("class","table");
-
-    svg.appendChild(table);
-
-    const tableText = create("text");
-
-    tableText.setAttribute("x",550);
-    tableText.setAttribute("y",490);
-    tableText.setAttribute("text-anchor","middle");
-    tableText.setAttribute("font-size","40");
-
-    tableText.textContent="회의 테이블";
-
-    svg.appendChild(tableText);
-
-    createSeat(
-        seats.head,
-        500,
-        50
-    );
-
-    seats.left.forEach((name,index)=>{
-
-        createSeat(
-            name,
-            170,
-            150 + index*90
-        );
-
-    });
-
-    seats.right.forEach((name,index)=>{
-
-        createSeat(
-            name,
-            810,
-            150 + index*90
-        );
-
-    });
-
-    const entrance = create("text");
-
-    entrance.setAttribute("x",550);
-    entrance.setAttribute("y",1010);
-    entrance.setAttribute("text-anchor","middle");
-    entrance.setAttribute("class","entrance");
-
-    entrance.textContent="🚪 출입구";
-
-    svg.appendChild(entrance);
-}
+const svg   = document.getElementById("seatMap");
+const SVG_NS = "http://www.w3.org/2000/svg";
+function create(tag){ return document.createElementNS(SVG_NS,tag); }
 
 function createSeat(name,x,y){
-
     const rect = create("rect");
-
-    rect.setAttribute("x",x);
-    rect.setAttribute("y",y);
-    rect.setAttribute("width",120);
-    rect.setAttribute("height",72);
-    rect.setAttribute("rx",10);
-    rect.setAttribute("class","seat");
+    rect.setAttribute("x",x); rect.setAttribute("y",y);
+    rect.setAttribute("width",120); rect.setAttribute("height",72);
+    rect.setAttribute("rx",10); rect.setAttribute("class","seat");
     rect.setAttribute("id","seat-"+name);
-
     svg.appendChild(rect);
 
     const text = create("text");
-
-    text.setAttribute("x",x+60);
-    text.setAttribute("y",y+26);
-    text.setAttribute("text-anchor","middle");
-    text.setAttribute("class","label");
-
-    text.textContent=name;
-
+    text.setAttribute("x",x+60); text.setAttribute("y",y+26);
+    text.setAttribute("text-anchor","middle"); text.setAttribute("class","label");
+    text.textContent = name;
     svg.appendChild(text);
 
     const ddayText = create("text");
-
-    ddayText.setAttribute("x",x+60);
-    ddayText.setAttribute("y",y+52);
-    ddayText.setAttribute("text-anchor","middle");
-    ddayText.setAttribute("class","dday");
-
-    ddayText.textContent=getDday(name);
-
+    ddayText.setAttribute("x",x+60); ddayText.setAttribute("y",y+52);
+    ddayText.setAttribute("text-anchor","middle"); ddayText.setAttribute("class","dday");
+    ddayText.textContent = getDday(name);
     svg.appendChild(ddayText);
+}
+
+function draw(){
+    svg.innerHTML="";
+
+    const table = create("rect");
+    table.setAttribute("x",350); table.setAttribute("y",150);
+    table.setAttribute("width",400); table.setAttribute("height",730);
+    table.setAttribute("rx",20); table.setAttribute("class","table");
+    svg.appendChild(table);
+
+    const tableText = create("text");
+    tableText.setAttribute("x",550); tableText.setAttribute("y",490);
+    tableText.setAttribute("text-anchor","middle"); tableText.setAttribute("font-size","40");
+    tableText.textContent="회의 테이블";
+    svg.appendChild(tableText);
+
+    createSeat(seats.head, 500, 50);
+    seats.left.forEach((name,i)  => createSeat(name, 170, 150+i*90));
+    seats.right.forEach((name,i) => createSeat(name, 810, 150+i*90));
+
+    const entrance = create("text");
+    entrance.setAttribute("x",550); entrance.setAttribute("y",1010);
+    entrance.setAttribute("text-anchor","middle"); entrance.setAttribute("class","entrance");
+    entrance.textContent="🚪 출입구";
+    svg.appendChild(entrance);
 }
 
 draw();
 
-</script>
+/* ── 이미지 관리 ── */
+function loadImages(){
+    return JSON.parse(localStorage.getItem('scheduleImages')||'[]');
+}
 
+function saveImages(imgs){
+    localStorage.setItem('scheduleImages', JSON.stringify(imgs));
+}
+
+function renderImages(){
+    const imgs = loadImages();
+    const grid = document.getElementById('imageGrid');
+    const empty = document.getElementById('emptyMsg');
+    grid.innerHTML='';
+    empty.style.display = imgs.length ? 'none' : 'block';
+    imgs.forEach((img,i)=>{
+        const card = document.createElement('div');
+        card.className='image-card';
+        card.innerHTML = `
+            <img src="${img.data}" alt="${img.name}" onclick="openLightbox('${img.data}')">
+            <button class="delete-btn" onclick="deleteImage(${i})">✕</button>`;
+        grid.appendChild(card);
+    });
+}
+
+function deleteImage(i){
+    const imgs = loadImages();
+    imgs.splice(i,1);
+    saveImages(imgs);
+    renderImages();
+}
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+    const files = [...e.target.files];
+    const imgs  = loadImages();
+    let loaded  = 0;
+    files.forEach(file=>{
+        const reader = new FileReader();
+        reader.onload = ev=>{
+            imgs.push({ name:file.name, data:ev.target.result });
+            loaded++;
+            if(loaded===files.length){ saveImages(imgs); renderImages(); }
+        };
+        reader.readAsDataURL(file);
+    });
+    e.target.value='';
+});
+
+function openLightbox(src){
+    document.getElementById('lightboxImg').src=src;
+    document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox(){
+    document.getElementById('lightbox').classList.remove('open');
+}
+
+renderImages();
+
+</script>
 </body>
 </html>
