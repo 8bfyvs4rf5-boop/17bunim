@@ -36,6 +36,7 @@ nav{
     background:transparent;
     color:#555;
     transition:background .15s,color .15s;
+    white-space:nowrap;
 }
 
 .nav-btn.active{
@@ -71,27 +72,24 @@ svg{
 .table{ fill:white; stroke:#333; stroke-width:5; }
 .entrance{ font-size:28px; font-weight:bold; fill:#444; }
 
-/* ── 과제제출일정 ── */
-#page-schedule{
+/* ── 단일 이미지 페이지 공통 ── */
+.img-page{
     padding:74px 24px 40px;
 }
 
-.schedule-header{
+.img-page-header{
     display:flex;
     align-items:center;
     justify-content:space-between;
-    margin-bottom:20px;
+    margin-bottom:24px;
 }
 
-.schedule-header h2{
+.img-page-header h2{
     font-size:22px;
     color:#333;
 }
 
 .upload-btn{
-    display:flex;
-    align-items:center;
-    gap:6px;
     padding:9px 18px;
     background:#1976d2;
     color:#fff;
@@ -100,59 +98,37 @@ svg{
     font-size:14px;
     font-family:inherit;
     cursor:pointer;
+    white-space:nowrap;
 }
 
 .upload-btn:hover{ background:#1565c0; }
 
-.image-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
-    gap:16px;
-}
-
-.image-card{
-    background:#fff;
-    border-radius:12px;
-    box-shadow:0 2px 8px rgba(0,0,0,.08);
-    overflow:hidden;
-    position:relative;
-}
-
-.image-card img{
+.single-image-wrap{
     width:100%;
-    display:block;
-    cursor:pointer;
+    text-align:center;
 }
 
-.image-card .delete-btn{
-    position:absolute;
-    top:8px; right:8px;
-    background:rgba(0,0,0,.5);
-    color:#fff;
-    border:none;
-    border-radius:50%;
-    width:28px; height:28px;
-    font-size:16px;
+.single-image-wrap img{
+    max-width:100%;
+    max-height:80vh;
+    border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,.12);
     cursor:pointer;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    line-height:1;
 }
 
 .empty-msg{
     color:#aaa;
     font-size:16px;
     text-align:center;
-    margin-top:60px;
+    margin-top:80px;
 }
 
-/* ── 이미지 전체화면 ── */
+/* ── 라이트박스 ── */
 .lightbox{
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,.85);
+    background:rgba(0,0,0,.88);
     z-index:200;
     align-items:center;
     justify-content:center;
@@ -161,8 +137,8 @@ svg{
 .lightbox.open{ display:flex; }
 
 .lightbox img{
-    max-width:92vw;
-    max-height:92vh;
+    max-width:94vw;
+    max-height:94vh;
     border-radius:8px;
 }
 
@@ -183,8 +159,10 @@ svg{
 
 <!-- 네비게이션 -->
 <nav>
-    <button class="nav-btn active" onclick="showPage('home')">홈(자리배치)</button>
-    <button class="nav-btn" onclick="showPage('schedule')">과제제출일정</button>
+    <button class="nav-btn active"  onclick="showPage('home',this)">홈(자리배치)</button>
+    <button class="nav-btn"         onclick="showPage('hall',this)">대강당 자리배치도</button>
+    <button class="nav-btn"         onclick="showPage('meal',this)">식사순서</button>
+    <button class="nav-btn"         onclick="showPage('schedule',this)">과제제출일정</button>
 </nav>
 
 <!-- 홈 -->
@@ -194,20 +172,40 @@ svg{
     <svg id="seatMap" viewBox="0 0 1100 1040"></svg>
 </div>
 
-<!-- 과제제출일정 -->
-<div id="page-schedule" class="page">
-    <div class="schedule-header">
-        <h2>과제제출일정</h2>
-        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-            + 이미지 추가
-        </button>
-        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+<!-- 대강당 자리배치도 -->
+<div id="page-hall" class="page img-page">
+    <div class="img-page-header">
+        <h2>대강당 자리배치도</h2>
+        <button class="upload-btn" onclick="triggerUpload('hall')">+ 이미지 추가</button>
     </div>
-    <div class="image-grid" id="imageGrid"></div>
-    <p class="empty-msg" id="emptyMsg">이미지를 추가해주세요</p>
+    <div class="single-image-wrap" id="img-hall"></div>
+    <p class="empty-msg" id="empty-hall">이미지를 추가해주세요</p>
+    <input type="file" id="file-hall" accept="image/*" hidden>
 </div>
 
-<!-- 전체화면 -->
+<!-- 식사순서 -->
+<div id="page-meal" class="page img-page">
+    <div class="img-page-header">
+        <h2>식사순서</h2>
+        <button class="upload-btn" onclick="triggerUpload('meal')">+ 이미지 추가</button>
+    </div>
+    <div class="single-image-wrap" id="img-meal"></div>
+    <p class="empty-msg" id="empty-meal">이미지를 추가해주세요</p>
+    <input type="file" id="file-meal" accept="image/*" hidden>
+</div>
+
+<!-- 과제제출일정 -->
+<div id="page-schedule" class="page img-page">
+    <div class="img-page-header">
+        <h2>과제제출일정</h2>
+        <button class="upload-btn" onclick="triggerUpload('schedule')">+ 이미지 추가</button>
+    </div>
+    <div class="single-image-wrap" id="img-schedule"></div>
+    <p class="empty-msg" id="empty-schedule">이미지를 추가해주세요</p>
+    <input type="file" id="file-schedule" accept="image/*" hidden>
+</div>
+
+<!-- 라이트박스 -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <button class="lightbox-close" onclick="closeLightbox()">✕</button>
     <img id="lightboxImg" src="" alt="">
@@ -216,20 +214,20 @@ svg{
 <script>
 
 /* ── 페이지 전환 ── */
-function showPage(id){
+function showPage(id, btn){
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-'+id).classList.add('active');
-    event.target.classList.add('active');
+    btn.classList.add('active');
 }
 
 /* ── 자리배치 ── */
 const BIRTHDAYS = {
-    "황민중":[3,4], "위성군":[7,17], "이현정":[1,13],
-    "김도원":[6,1], "이예지":[5,8],  "정현구":[8,24],
-    "정수민":[7,19],"고은지":[11,11],"박상우":[6,5],
-    "조혜연":[5,10],"이남기":[10,15],"강예나":[4,21],
-    "최서린":[8,15],"최민기":[10,11],"김우빈":[6,19]
+    "황민중":[3,4],  "위성군":[7,17], "이현정":[1,13],
+    "김도원":[6,1],  "이예지":[5,8],  "정현구":[8,24],
+    "정수민":[7,19], "고은지":[11,11],"박상우":[6,5],
+    "조혜연":[5,10], "이남기":[10,15],"강예나":[4,21],
+    "최서린":[8,15], "최민기":[10,11],"김우빈":[6,19]
 };
 
 function getDday(name){
@@ -275,7 +273,7 @@ const seats = {
 
 document.getElementById("today").innerText = new Date().toLocaleDateString();
 
-const svg   = document.getElementById("seatMap");
+const svg    = document.getElementById("seatMap");
 const SVG_NS = "http://www.w3.org/2000/svg";
 function create(tag){ return document.createElementNS(SVG_NS,tag); }
 
@@ -284,7 +282,6 @@ function createSeat(name,x,y){
     rect.setAttribute("x",x); rect.setAttribute("y",y);
     rect.setAttribute("width",120); rect.setAttribute("height",72);
     rect.setAttribute("rx",10); rect.setAttribute("class","seat");
-    rect.setAttribute("id","seat-"+name);
     svg.appendChild(rect);
 
     const text = create("text");
@@ -328,64 +325,48 @@ function draw(){
 
 draw();
 
-/* ── 이미지 관리 ── */
-function loadImages(){
-    return JSON.parse(localStorage.getItem('scheduleImages')||'[]');
+/* ── 단일 이미지 관리 ── */
+function triggerUpload(key){
+    document.getElementById('file-'+key).click();
 }
 
-function saveImages(imgs){
-    localStorage.setItem('scheduleImages', JSON.stringify(imgs));
+function renderImage(key){
+    const data  = localStorage.getItem('img-'+key);
+    const wrap  = document.getElementById('img-'+key);
+    const empty = document.getElementById('empty-'+key);
+    if(data){
+        wrap.innerHTML = `<img src="${data}" alt="" onclick="openLightbox('${data}')">`;
+        empty.style.display = 'none';
+    } else {
+        wrap.innerHTML = '';
+        empty.style.display = 'block';
+    }
 }
 
-function renderImages(){
-    const imgs = loadImages();
-    const grid = document.getElementById('imageGrid');
-    const empty = document.getElementById('emptyMsg');
-    grid.innerHTML='';
-    empty.style.display = imgs.length ? 'none' : 'block';
-    imgs.forEach((img,i)=>{
-        const card = document.createElement('div');
-        card.className='image-card';
-        card.innerHTML = `
-            <img src="${img.data}" alt="${img.name}" onclick="openLightbox('${img.data}')">
-            <button class="delete-btn" onclick="deleteImage(${i})">✕</button>`;
-        grid.appendChild(card);
-    });
-}
-
-function deleteImage(i){
-    const imgs = loadImages();
-    imgs.splice(i,1);
-    saveImages(imgs);
-    renderImages();
-}
-
-document.getElementById('fileInput').addEventListener('change', e=>{
-    const files = [...e.target.files];
-    const imgs  = loadImages();
-    let loaded  = 0;
-    files.forEach(file=>{
+['hall','meal','schedule'].forEach(key=>{
+    document.getElementById('file-'+key).addEventListener('change', e=>{
+        const file = e.target.files[0];
+        if(!file) return;
         const reader = new FileReader();
         reader.onload = ev=>{
-            imgs.push({ name:file.name, data:ev.target.result });
-            loaded++;
-            if(loaded===files.length){ saveImages(imgs); renderImages(); }
+            localStorage.setItem('img-'+key, ev.target.result);
+            renderImage(key);
         };
         reader.readAsDataURL(file);
+        e.target.value='';
     });
-    e.target.value='';
+    renderImage(key);
 });
 
+/* ── 라이트박스 ── */
 function openLightbox(src){
-    document.getElementById('lightboxImg').src=src;
+    document.getElementById('lightboxImg').src = src;
     document.getElementById('lightbox').classList.add('open');
 }
 
 function closeLightbox(){
     document.getElementById('lightbox').classList.remove('open');
 }
-
-renderImages();
 
 </script>
 </body>
