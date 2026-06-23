@@ -160,7 +160,7 @@ function shuffle(arr,seed){
 
         [copy[i],copy[j]]
         =
-        [copy[j],copy[i];
+        [copy[j],copy[i]];
     }
 
     return copy;
