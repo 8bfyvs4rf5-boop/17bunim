@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>17분임 자리배치</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:#f4f6f8;
+    font-family:"Malgun Gothic",sans-serif;
+    text-align:center;
+}
+
+.container{
+    padding:20px;
+}
+
+h1{
+    margin-bottom:10px;
+}
+
+.date{
+    color:#666;
+    margin-bottom:20px;
+}
+
+input{
+    width:280px;
+    padding:12px;
+    font-size:16px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+.result{
+    margin-top:12px;
+    font-size:20px;
+    font-weight:bold;
+    color:#1976d2;
+}
+
+svg{
+    width:100%;
+    max-width:1100px;
+    height:auto;
+    margin-top:30px;
+}
+
+.seat{
+    fill:#ececec;
+    stroke:#888;
+    stroke-width:2;
+}
+
+.highlight{
+    fill:#ffe44d;
+    stroke:#f57f17;
+    stroke-width:4;
+}
+
+.arrow{
+    fill:red;
+}
+
+.label{
+    font-size:14px;
+    font-weight:bold;
+}
+
+.table{
+    fill:white;
+    stroke:#333;
+    stroke-width:5;
+}
+
+.entrance{
+    font-size:28px;
+    font-weight:bold;
+    fill:#444;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>17분임 오늘의 자리배치</h1>
+
+<div class="date" id="today"></div>
+
+<input
+id="searchInput"
+placeholder="이름을 입력하세요"
+/>
+
+<div class="result" id="result"></div>
+
+<svg
+id="seatMap"
+viewBox="0 0 1100 1000"> </svg>
+
+</div>
+
+<script>
+
+const MEMBERS = [
+"강예나",
+"고은지",
+"권회민",
+"김도원",
+"김우빈",
+"나현빈",
+"박상우",
+"위성군",
+"이남기",
+"이예지",
+"이현정",
+"정수민",
+"정현구",
+"조혜연",
+"최민기",
+"최서린",
+"황민중"
+];
+
+function getSeed(){
+
+    const d = new Date();
+
+    return Number(
+        d.getFullYear().toString() +
+        String(d.getMonth()+1).padStart(2,"0") +
+        String(d.getDate()).padStart(2,"0")
+    );
+}
+
+function shuffle(arr,seed){
+
+    const copy=[...arr];
+
+    let r=seed;
+
+    for(let i=copy.length-1;i>0;i--){
+
+        r=(r*9301+49297)%233280;
+
+        const j=Math.floor(
+            (r/233280)*(i+1)
+        );
+
+        [copy[i],copy[j]]
+        =
+        [copy[j],copy[i];
+    }
+
+    return copy;
+}
+
+const shuffled =
+shuffle(MEMBERS,getSeed());
+
+const seats = {
+    head : shuffled[0],
+    left : shuffled.slice(1,9),
+    right : shuffled.slice(9,17)
+};
+
+document.getElementById("today").innerText =
+new Date().toLocaleDateString();
+
+const svg =
+document.getElementById("seatMap");
+
+const SVG_NS =
+"http://www.w3.org/2000/svg";
+
+function create(tag){
+    return document.createElementNS(
+        SVG_NS,
+        tag
+    );
+}
+
+const seatPositions = {};
+
+function draw(){
+
+    svg.innerHTML="";
+
+    const table = create("rect");
+
+    table.setAttribute("x",350);
+    table.setAttribute("y",150);
+    table.setAttribute("width",400);
+    table.setAttribute("height",650);
+    table.setAttribute("rx",20);
+    table.setAttribute("class","table");
+
+    svg.appendChild(table);
+
+    const tableText = create("text");
+
+    tableText.setAttribute("x",550);
+    tableText.setAttribute("y",490);
+    tableText.setAttribute("text-anchor","middle");
+    tableText.setAttribute("font-size","40");
+
+    tableText.textContent="회의 테이블";
+
+    svg.appendChild(tableText);
+
+    createSeat(
+        seats.head,
+        500,
+        50
+    );
+
+    seats.left.forEach((name,index)=>{
+
+        createSeat(
+            name,
+            170,
+            150 + index*80
+        );
+
+    });
+
+    seats.right.forEach((name,index)=>{
+
+        createSeat(
+            name,
+            810,
+            150 + index*80
+        );
+
+    });
+
+    const entrance = create("text");
+
+    entrance.setAttribute("x",550);
+    entrance.setAttribute("y",930);
+    entrance.setAttribute("text-anchor","middle");
+    entrance.setAttribute("class","entrance");
+
+    entrance.textContent="🚪 출입구";
+
+    svg.appendChild(entrance);
+}
+
+function createSeat(name,x,y){
+
+    seatPositions[name] = {
+        x:x,
+        y:y
+    };
+
+    const rect = create("rect");
+
+    rect.setAttribute("x",x);
+    rect.setAttribute("y",y);
+    rect.setAttribute("width",120);
+    rect.setAttribute("height",50);
+    rect.setAttribute("rx",10);
+    rect.setAttribute("class","seat");
+    rect.setAttribute("id","seat-"+name);
+
+    svg.appendChild(rect);
+
+    const text = create("text");
+
+    text.setAttribute("x",x+60);
+    text.setAttribute("y",y+32);
+    text.setAttribute("text-anchor","middle");
+    text.setAttribute("class","label");
+
+    text.textContent=name;
+
+    svg.appendChild(text);
+}
+
+draw();
+
+function positionText(name){
+
+    if(name===seats.head){
+        return "상석";
+    }
+
+    let idx =
+    seats.left.indexOf(name);
+
+    if(idx!==-1){
+        return `왼쪽 ${idx+1}번 자리`;
+    }
+
+    idx =
+    seats.right.indexOf(name);
+
+    if(idx!==-1){
+        return `오른쪽 ${idx+1}번 자리`;
+    }
+
+    return null;
+}
+
+function removeArrow(){
+
+    const old =
+    document.getElementById("arrow");
+
+    if(old){
+        old.remove();
+    }
+}
+
+function drawArrow(name){
+
+    removeArrow();
+
+    const pos =
+    seatPositions[name];
+
+    if(!pos) return;
+
+    const arrow =
+    create("polygon");
+
+    arrow.setAttribute(
+        "points",
+        `${pos.x-35},${pos.y+25}
+         ${pos.x-5},${pos.y+10}
+         ${pos.x-5},${pos.y+40}`
+    );
+
+    arrow.setAttribute(
+        "class",
+        "arrow"
+    );
+
+    arrow.setAttribute(
+        "id",
+        "arrow"
+    );
+
+    svg.appendChild(arrow);
+}
+
+document
+.getElementById("searchInput")
+.addEventListener("input",e=>{
+
+    const value =
+    e.target.value.trim();
+
+    document
+    .querySelectorAll(".seat")
+    .forEach(seat=>{
+
+        seat.classList.remove(
+            "highlight"
+        );
+
+    });
+
+    removeArrow();
+
+    const result =
+    positionText(value);
+
+    if(!result){
+
+        document
+        .getElementById("result")
+        .innerText="";
+
+        return;
+    }
+
+    document
+    .getElementById("result")
+    .innerText =
+    `${value}님의 자리 : ${result}`;
+
+    const seat =
+    document.getElementById(
+        "seat-"+value
+    );
+
+    if(seat){
+
+        seat.classList.add(
+            "highlight"
+        );
+
+        drawArrow(value);
+    }
+
+});
+
+</script>
+
+</body>
+</html>

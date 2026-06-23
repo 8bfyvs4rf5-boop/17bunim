@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /Users/ghn3428naver.com/Desktop/index && git add . && git diff --staged --quiet || git commit -m \"auto: update from claude\" && git push origin main 2>&1 || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
