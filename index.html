@@ -8,9 +8,51 @@
 
 *{ box-sizing:border-box; margin:0; padding:0; }
 
+:root{
+    --bg:#f4f6f8;
+    --nav-bg:#fff;
+    --nav-shadow:rgba(0,0,0,.1);
+    --text:#222;
+    --text-sub:#555;
+    --text-muted:#666;
+    --text-empty:#aaa;
+    --h2:#333;
+    --seat-fill:#ececec;
+    --seat-stroke:#888;
+    --table-fill:white;
+    --table-stroke:#333;
+    --table-text:#000;
+    --entrance-fill:#444;
+    --label-fill:#000;
+    --dday-fill:#888;
+    --card-shadow:rgba(0,0,0,.12);
+}
+
+body.dark{
+    --bg:#1a1a2e;
+    --nav-bg:#16213e;
+    --nav-shadow:rgba(0,0,0,.4);
+    --text:#e0e0e0;
+    --text-sub:#aaa;
+    --text-muted:#999;
+    --text-empty:#555;
+    --h2:#ccc;
+    --seat-fill:#2a2a4a;
+    --seat-stroke:#555;
+    --table-fill:#0f3460;
+    --table-stroke:#334;
+    --table-text:#ccc;
+    --entrance-fill:#aaa;
+    --label-fill:#e0e0e0;
+    --dday-fill:#888;
+    --card-shadow:rgba(0,0,0,.4);
+}
+
 body{
-    background:#f4f6f8;
+    background:var(--bg);
     font-family:"Malgun Gothic",sans-serif;
+    color:var(--text);
+    transition:background .25s,color .25s;
 }
 
 /* ── 네비게이션 ── */
@@ -18,12 +60,14 @@ nav{
     position:fixed;
     top:0; left:0;
     width:100%;
-    background:#fff;
-    box-shadow:0 2px 6px rgba(0,0,0,.1);
+    background:var(--nav-bg);
+    box-shadow:0 2px 6px var(--nav-shadow);
     display:flex;
+    align-items:center;
     gap:4px;
     padding:10px 16px;
     z-index:100;
+    transition:background .25s;
 }
 
 .nav-btn{
@@ -34,7 +78,7 @@ nav{
     font-family:inherit;
     cursor:pointer;
     background:transparent;
-    color:#555;
+    color:var(--text-sub);
     transition:background .15s,color .15s;
     white-space:nowrap;
 }
@@ -44,6 +88,25 @@ nav{
     color:#fff;
     font-weight:bold;
 }
+
+.theme-toggle{
+    margin-left:auto;
+    padding:7px 14px;
+    border:1.5px solid var(--seat-stroke);
+    border-radius:20px;
+    background:transparent;
+    color:var(--text-sub);
+    font-size:14px;
+    font-family:inherit;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    transition:border-color .2s,color .2s;
+    white-space:nowrap;
+}
+
+.theme-toggle:hover{ border-color:#1976d2; color:#1976d2; }
 
 /* ── 페이지 공통 ── */
 .page{ display:none; padding-top:64px; }
@@ -57,7 +120,7 @@ nav{
 
 #page-home h1{ margin-bottom:8px; }
 
-.date{ color:#666; margin-bottom:10px; }
+.date{ color:var(--text-muted); margin-bottom:10px; }
 
 svg{
     width:100%;
@@ -66,11 +129,12 @@ svg{
     margin-top:20px;
 }
 
-.seat{ fill:#ececec; stroke:#888; stroke-width:2; }
-.label{ font-size:14px; font-weight:bold; }
-.dday{ font-size:11px; fill:#888; }
-.table{ fill:white; stroke:#333; stroke-width:5; }
-.entrance{ font-size:28px; font-weight:bold; fill:#444; }
+.seat{ fill:var(--seat-fill); stroke:var(--seat-stroke); stroke-width:2; }
+.label{ font-size:14px; font-weight:bold; fill:var(--label-fill); }
+.dday{ font-size:11px; fill:var(--dday-fill); }
+.table{ fill:var(--table-fill); stroke:var(--table-stroke); stroke-width:5; }
+.table-text{ fill:var(--table-text); }
+.entrance{ font-size:28px; font-weight:bold; fill:var(--entrance-fill); }
 
 /* ── 단일 이미지 페이지 공통 ── */
 .img-page{
@@ -86,7 +150,7 @@ svg{
 
 .img-page-header h2{
     font-size:22px;
-    color:#333;
+    color:var(--h2);
 }
 
 .upload-btn{
@@ -112,12 +176,12 @@ svg{
     max-width:100%;
     max-height:80vh;
     border-radius:12px;
-    box-shadow:0 4px 20px rgba(0,0,0,.12);
+    box-shadow:0 4px 20px var(--card-shadow);
     cursor:pointer;
 }
 
 .empty-msg{
-    color:#aaa;
+    color:var(--text-empty);
     font-size:16px;
     text-align:center;
     margin-top:80px;
@@ -163,6 +227,7 @@ svg{
     <button class="nav-btn"         onclick="showPage('hall',this)">대강당 자리배치도</button>
     <button class="nav-btn"         onclick="showPage('meal',this)">식사순서</button>
     <button class="nav-btn"         onclick="showPage('schedule',this)">과제제출일정</button>
+    <button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">🌙 다크모드</button>
 </nav>
 
 <!-- 홈 -->
@@ -212,6 +277,20 @@ svg{
 </div>
 
 <script>
+
+/* ── 다크모드 ── */
+function applyTheme(dark){
+    document.body.classList.toggle('dark', dark);
+    document.getElementById('themeBtn').textContent = dark ? '☀️ 라이트모드' : '🌙 다크모드';
+}
+
+function toggleTheme(){
+    const dark = !document.body.classList.contains('dark');
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+    applyTheme(dark);
+}
+
+applyTheme(localStorage.getItem('theme') === 'dark');
 
 /* ── 페이지 전환 ── */
 function showPage(id, btn){
@@ -309,6 +388,7 @@ function draw(){
     const tableText = create("text");
     tableText.setAttribute("x",550); tableText.setAttribute("y",490);
     tableText.setAttribute("text-anchor","middle"); tableText.setAttribute("font-size","40");
+    tableText.setAttribute("class","table-text");
     tableText.textContent="회의 테이블";
     svg.appendChild(tableText);
 
