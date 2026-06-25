@@ -26,6 +26,25 @@
     --label-fill:#000;
     --dday-fill:#888;
     --card-shadow:rgba(0,0,0,.12);
+    /* 회의실 테마 */
+    --room-floor:#ede8e0;
+    --room-wall:#cfc8bf;
+    --table-wood:#6d4c41;
+    --table-wood-dark:#3e2723;
+    --seat-card-bg:#1e3a5f;
+    --seat-card-border:#2d5a9e;
+    --seat-card-name:#ffffff;
+    --seat-card-dday:#93b4db;
+    --seat-accent-bar:#1565c0;
+    --chair-color:#b8a898;
+    --screen-bg:#0d1b2a;
+    --screen-text:#00d4ff;
+    --wb-bg:#f8f8f8;
+    --wb-border:#bbb;
+    --wb-text:#555;
+    --clock-face:#f5f5f5;
+    --clock-border:#aaa;
+    --clock-hands:#333;
 }
 
 body.dark{
@@ -46,6 +65,25 @@ body.dark{
     --label-fill:#e0e0e0;
     --dday-fill:#888;
     --card-shadow:rgba(0,0,0,.4);
+    /* 회의실 테마 (다크) */
+    --room-floor:#16182a;
+    --room-wall:#0e1020;
+    --table-wood:#4e342e;
+    --table-wood-dark:#2c1a16;
+    --seat-card-bg:#0d2547;
+    --seat-card-border:#1a3d7a;
+    --seat-card-name:#e0eeff;
+    --seat-card-dday:#6b94d6;
+    --seat-accent-bar:#1d4ed8;
+    --chair-color:#3a3050;
+    --screen-bg:#050d18;
+    --screen-text:#00b4d8;
+    --wb-bg:#1a2a3a;
+    --wb-border:#2a4a6a;
+    --wb-text:#88b0d8;
+    --clock-face:#1a2030;
+    --clock-border:#3a4060;
+    --clock-hands:#c0d0f0;
 }
 
 body{
@@ -206,12 +244,14 @@ svg.seat-map{
     will-change:transform;
 }
 
-.seat{ fill:var(--seat-fill); stroke:var(--seat-stroke); stroke-width:2; }
-.label{ font-size:14px; font-weight:bold; fill:var(--label-fill); }
-.dday{ font-size:11px; fill:var(--dday-fill); }
-.table{ fill:var(--table-fill); stroke:var(--table-stroke); stroke-width:5; }
-.table-text{ fill:var(--table-text); }
-.entrance{ font-size:28px; font-weight:bold; fill:var(--entrance-fill); }
+.seat{ fill:var(--seat-card-bg); stroke:var(--seat-card-border); stroke-width:1.5; }
+.label{ font-size:15px; font-weight:bold; fill:var(--seat-card-name); font-family:"Malgun Gothic",sans-serif; }
+.dday{ font-size:11px; fill:var(--seat-card-dday); font-family:"Malgun Gothic",sans-serif; }
+.table{ fill:var(--table-wood); stroke:var(--table-wood-dark); stroke-width:4; }
+.table-text{ fill:rgba(255,255,255,0.14); font-family:"Malgun Gothic",sans-serif; }
+.entrance{ font-size:20px; font-weight:bold; fill:var(--entrance-fill); font-family:"Malgun Gothic",sans-serif; }
+.room-floor{ fill:var(--room-floor); }
+.room-wall{ fill:var(--room-wall); }
 
 /* ── 단일 이미지 페이지 공통 ── */
 .img-page{
@@ -511,48 +551,275 @@ const svg    = document.getElementById("seatMap");
 const SVG_NS = "http://www.w3.org/2000/svg";
 function create(tag){ return document.createElementNS(SVG_NS,tag); }
 
-function createSeat(name,x,y){
-    const rect = create("rect");
-    rect.setAttribute("x",x); rect.setAttribute("y",y);
-    rect.setAttribute("width",120); rect.setAttribute("height",72);
-    rect.setAttribute("rx",10); rect.setAttribute("class","seat");
-    svg.appendChild(rect);
+/* ── 화분 그리기 ── */
+function drawPlant(cx,cy){
+    const pot = create("polygon");
+    pot.setAttribute("points",`${cx-14},${cy+24} ${cx+14},${cy+24} ${cx+10},${cy+40} ${cx-10},${cy+40}`);
+    pot.setAttribute("fill","#8d5524");
+    svg.appendChild(pot);
 
-    const text = create("text");
-    text.setAttribute("x",x+60); text.setAttribute("y",y+26);
+    const rim = create("ellipse");
+    rim.setAttribute("cx",cx); rim.setAttribute("cy",cy+24);
+    rim.setAttribute("rx",15); rim.setAttribute("ry",5);
+    rim.setAttribute("fill","#a0522d");
+    svg.appendChild(rim);
+
+    [[-13,-6,-28,"#2d6a4f"],[13,-6,28,"#40916c"],[0,-18,0,"#52b788"]].forEach(([dx,dy,rot,col])=>{
+        const leaf = create("ellipse");
+        leaf.setAttribute("cx",cx+dx); leaf.setAttribute("cy",cy+dy);
+        leaf.setAttribute("rx",13); leaf.setAttribute("ry",24);
+        leaf.setAttribute("fill",col);
+        leaf.setAttribute("transform",`rotate(${rot} ${cx+dx} ${cy+dy})`);
+        svg.appendChild(leaf);
+    });
+}
+
+/* ── 시계 그리기 ── */
+function drawClock(cx,cy){
+    const r=20;
+    const face = create("circle");
+    face.setAttribute("cx",cx); face.setAttribute("cy",cy);
+    face.setAttribute("r",r); face.setAttribute("fill","var(--clock-face)");
+    face.setAttribute("stroke","var(--clock-border)"); face.setAttribute("stroke-width","1.5");
+    svg.appendChild(face);
+
+    [[0,-1],[1,0],[0,1],[-1,0]].forEach(([dx,dy])=>{
+        const dot = create("circle");
+        dot.setAttribute("cx",cx+dx*15); dot.setAttribute("cy",cy+dy*15);
+        dot.setAttribute("r",1.5); dot.setAttribute("fill","var(--clock-border)");
+        svg.appendChild(dot);
+    });
+
+    const now = new Date();
+    const h = now.getHours()%12 + now.getMinutes()/60;
+    const m = now.getMinutes() + now.getSeconds()/60;
+    const hA = (h/12)*2*Math.PI - Math.PI/2;
+    const mA = (m/60)*2*Math.PI - Math.PI/2;
+
+    [
+        [hA,11,2.5],[mA,16,1.5]
+    ].forEach(([angle,len,w])=>{
+        const hand = create("line");
+        hand.setAttribute("x1",cx); hand.setAttribute("y1",cy);
+        hand.setAttribute("x2",cx+Math.cos(angle)*len); hand.setAttribute("y2",cy+Math.sin(angle)*len);
+        hand.setAttribute("stroke","var(--clock-hands)"); hand.setAttribute("stroke-width",w);
+        hand.setAttribute("stroke-linecap","round");
+        svg.appendChild(hand);
+    });
+
+    const cnt = create("circle");
+    cnt.setAttribute("cx",cx); cnt.setAttribute("cy",cy);
+    cnt.setAttribute("r",2.5); cnt.setAttribute("fill","var(--clock-hands)");
+    svg.appendChild(cnt);
+}
+
+/* ── 좌석 카드 그리기 ── */
+function createSeat(name,x,y,side){
+    const W=130, H=80, R=10;
+    const clipId='clip_'+name.replace(/[^a-z0-9]/gi,'_')+'_'+x;
+
+    const cp = create("clipPath");
+    cp.setAttribute("id",clipId);
+    const cpR = create("rect");
+    cpR.setAttribute("x",x); cpR.setAttribute("y",y);
+    cpR.setAttribute("width",W); cpR.setAttribute("height",H);
+    cpR.setAttribute("rx",R);
+    cp.appendChild(cpR);
+    svg.appendChild(cp);
+
+    /* 의자 등받이 */
+    if(side==='left'){
+        const b=create("rect");
+        b.setAttribute("x",x-16); b.setAttribute("y",y+8);
+        b.setAttribute("width",13); b.setAttribute("height",H-16);
+        b.setAttribute("rx",6); b.setAttribute("fill","var(--chair-color)");
+        svg.appendChild(b);
+    } else if(side==='right'){
+        const b=create("rect");
+        b.setAttribute("x",x+W+3); b.setAttribute("y",y+8);
+        b.setAttribute("width",13); b.setAttribute("height",H-16);
+        b.setAttribute("rx",6); b.setAttribute("fill","var(--chair-color)");
+        svg.appendChild(b);
+    } else if(side==='top'){
+        const b=create("rect");
+        b.setAttribute("x",x+18); b.setAttribute("y",y-13);
+        b.setAttribute("width",W-36); b.setAttribute("height",13);
+        b.setAttribute("rx",6); b.setAttribute("fill","var(--chair-color)");
+        svg.appendChild(b);
+    }
+
+    /* 카드 그림자 */
+    const sh=create("rect");
+    sh.setAttribute("x",x+4); sh.setAttribute("y",y+4);
+    sh.setAttribute("width",W); sh.setAttribute("height",H);
+    sh.setAttribute("rx",R); sh.setAttribute("fill","rgba(0,0,0,0.22)");
+    svg.appendChild(sh);
+
+    /* 카드 본체 */
+    const card=create("rect");
+    card.setAttribute("x",x); card.setAttribute("y",y);
+    card.setAttribute("width",W); card.setAttribute("height",H);
+    card.setAttribute("rx",R); card.setAttribute("class","seat");
+    svg.appendChild(card);
+
+    /* 상단 액센트 바 (클립 적용으로 카드 밖 삐져나옴 방지) */
+    const barG=create("g");
+    barG.setAttribute("clip-path","url(#"+clipId+")");
+    const bar=create("rect");
+    bar.setAttribute("x",x); bar.setAttribute("y",y);
+    bar.setAttribute("width",W); bar.setAttribute("height",24);
+    bar.setAttribute("fill","var(--seat-accent-bar)");
+    barG.appendChild(bar);
+    svg.appendChild(barG);
+
+    /* 이름 */
+    const text=create("text");
+    text.setAttribute("x",x+W/2); text.setAttribute("y",y+53);
     text.setAttribute("text-anchor","middle"); text.setAttribute("class","label");
-    text.textContent = name;
+    text.textContent=name;
     svg.appendChild(text);
 
-    const ddayText = create("text");
-    ddayText.setAttribute("x",x+60); ddayText.setAttribute("y",y+52);
-    ddayText.setAttribute("text-anchor","middle"); ddayText.setAttribute("class","dday");
-    ddayText.textContent = getDday(name);
-    svg.appendChild(ddayText);
+    /* D-day */
+    const dd=create("text");
+    dd.setAttribute("x",x+W/2); dd.setAttribute("y",y+70);
+    dd.setAttribute("text-anchor","middle"); dd.setAttribute("class","dday");
+    dd.textContent=getDday(name);
+    svg.appendChild(dd);
 }
 
 function draw(){
     svg.innerHTML="";
 
-    const table = create("rect");
-    table.setAttribute("x",350); table.setAttribute("y",150);
-    table.setAttribute("width",400); table.setAttribute("height",730);
+    /* ── 바닥 ── */
+    const floor=create("rect");
+    floor.setAttribute("x",0); floor.setAttribute("y",0);
+    floor.setAttribute("width",1100); floor.setAttribute("height",1040);
+    floor.setAttribute("class","room-floor");
+    svg.appendChild(floor);
+
+    /* ── 윗 벽면 ── */
+    const wallTop=create("rect");
+    wallTop.setAttribute("x",0); wallTop.setAttribute("y",0);
+    wallTop.setAttribute("width",1100); wallTop.setAttribute("height",50);
+    wallTop.setAttribute("class","room-wall");
+    svg.appendChild(wallTop);
+
+    const wallLine=create("line");
+    wallLine.setAttribute("x1",0); wallLine.setAttribute("y1",50);
+    wallLine.setAttribute("x2",1100); wallLine.setAttribute("y2",50);
+    wallLine.setAttribute("stroke","rgba(0,0,0,0.15)"); wallLine.setAttribute("stroke-width","2");
+    svg.appendChild(wallLine);
+
+    /* ── 프로젝터 스크린 ── */
+    const screen=create("rect");
+    screen.setAttribute("x",285); screen.setAttribute("y",5);
+    screen.setAttribute("width",530); screen.setAttribute("height",40);
+    screen.setAttribute("rx",4); screen.setAttribute("fill","var(--screen-bg)");
+    screen.setAttribute("stroke","#334d66"); screen.setAttribute("stroke-width","1.5");
+    svg.appendChild(screen);
+
+    const screenTxt=create("text");
+    screenTxt.setAttribute("x",550); screenTxt.setAttribute("y",30);
+    screenTxt.setAttribute("text-anchor","middle"); screenTxt.setAttribute("font-size","15");
+    screenTxt.setAttribute("fill","var(--screen-text)"); screenTxt.setAttribute("font-weight","bold");
+    screenTxt.setAttribute("font-family","'Malgun Gothic',sans-serif");
+    screenTxt.setAttribute("letter-spacing","2");
+    screenTxt.textContent="▶ 프레젠테이션 화면";
+    svg.appendChild(screenTxt);
+
+    /* ── 화이트보드 ── */
+    const wb=create("rect");
+    wb.setAttribute("x",55); wb.setAttribute("y",5);
+    wb.setAttribute("width",190); wb.setAttribute("height",40);
+    wb.setAttribute("rx",4); wb.setAttribute("fill","var(--wb-bg)");
+    wb.setAttribute("stroke","var(--wb-border)"); wb.setAttribute("stroke-width","1.5");
+    svg.appendChild(wb);
+
+    const wbTxt=create("text");
+    wbTxt.setAttribute("x",150); wbTxt.setAttribute("y",30);
+    wbTxt.setAttribute("text-anchor","middle"); wbTxt.setAttribute("font-size","14");
+    wbTxt.setAttribute("fill","var(--wb-text)"); wbTxt.setAttribute("font-family","'Malgun Gothic',sans-serif");
+    wbTxt.textContent="📋 화이트보드";
+    svg.appendChild(wbTxt);
+
+    /* ── 시계 ── */
+    drawClock(1055, 25);
+
+    /* ── 화분 ── */
+    drawPlant(52, 110);
+    drawPlant(1048, 110);
+
+    /* ── 회의 테이블 그림자 ── */
+    const tShadow=create("rect");
+    tShadow.setAttribute("x",358); tShadow.setAttribute("y",163);
+    tShadow.setAttribute("width",400); tShadow.setAttribute("height",740);
+    tShadow.setAttribute("rx",22); tShadow.setAttribute("fill","rgba(0,0,0,0.2)");
+    svg.appendChild(tShadow);
+
+    /* ── 회의 테이블 ── */
+    const table=create("rect");
+    table.setAttribute("x",350); table.setAttribute("y",155);
+    table.setAttribute("width",400); table.setAttribute("height",740);
     table.setAttribute("rx",20); table.setAttribute("class","table");
     svg.appendChild(table);
 
-    const tableText = create("text");
-    tableText.setAttribute("x",550); tableText.setAttribute("y",490);
-    tableText.setAttribute("text-anchor","middle"); tableText.setAttribute("font-size","40");
-    tableText.setAttribute("class","table-text");
-    tableText.textContent="회의 테이블";
-    svg.appendChild(tableText);
+    /* 테이블 광택 라인 */
+    const shine=create("rect");
+    shine.setAttribute("x",360); shine.setAttribute("y",160);
+    shine.setAttribute("width",65); shine.setAttribute("height",730);
+    shine.setAttribute("rx",14); shine.setAttribute("fill","rgba(255,255,255,0.07)");
+    svg.appendChild(shine);
 
-    createSeat(seats.head, 500, 50);
-    seats.left.forEach((name,i)  => createSeat(name, 170, 150+i*90));
-    seats.right.forEach((name,i) => createSeat(name, 810, 150+i*90));
+    const tTxt1=create("text");
+    tTxt1.setAttribute("x",550); tTxt1.setAttribute("y",510);
+    tTxt1.setAttribute("text-anchor","middle"); tTxt1.setAttribute("font-size","22");
+    tTxt1.setAttribute("class","table-text"); tTxt1.setAttribute("font-weight","bold");
+    tTxt1.setAttribute("letter-spacing","6");
+    tTxt1.textContent="CONFERENCE";
+    svg.appendChild(tTxt1);
 
-    const entrance = create("text");
-    entrance.setAttribute("x",550); entrance.setAttribute("y",1010);
+    const tTxt2=create("text");
+    tTxt2.setAttribute("x",550); tTxt2.setAttribute("y",544);
+    tTxt2.setAttribute("text-anchor","middle"); tTxt2.setAttribute("font-size","22");
+    tTxt2.setAttribute("class","table-text"); tTxt2.setAttribute("font-weight","bold");
+    tTxt2.setAttribute("letter-spacing","6");
+    tTxt2.textContent="TABLE";
+    svg.appendChild(tTxt2);
+
+    /* ── 좌석 배치 ── */
+    createSeat(seats.head, 485, 65, 'top');
+    seats.left.forEach((name,i)  => createSeat(name, 155, 165+i*90, 'left'));
+    seats.right.forEach((name,i) => createSeat(name, 815, 165+i*90, 'right'));
+
+    /* ── 아랫 벽면 ── */
+    const wallBot=create("rect");
+    wallBot.setAttribute("x",0); wallBot.setAttribute("y",905);
+    wallBot.setAttribute("width",1100); wallBot.setAttribute("height",135);
+    wallBot.setAttribute("class","room-wall");
+    svg.appendChild(wallBot);
+
+    const wallBotLine=create("line");
+    wallBotLine.setAttribute("x1",0); wallBotLine.setAttribute("y1",905);
+    wallBotLine.setAttribute("x2",1100); wallBotLine.setAttribute("y2",905);
+    wallBotLine.setAttribute("stroke","rgba(0,0,0,0.15)"); wallBotLine.setAttribute("stroke-width","2");
+    svg.appendChild(wallBotLine);
+
+    /* ── 출입구 문 ── */
+    const doorFrame=create("rect");
+    doorFrame.setAttribute("x",452); doorFrame.setAttribute("y",902);
+    doorFrame.setAttribute("width",196); doorFrame.setAttribute("height",138);
+    doorFrame.setAttribute("rx",6); doorFrame.setAttribute("fill","var(--room-floor)");
+    doorFrame.setAttribute("stroke","#888"); doorFrame.setAttribute("stroke-width","3");
+    svg.appendChild(doorFrame);
+
+    const handle=create("circle");
+    handle.setAttribute("cx",602); handle.setAttribute("cy",978);
+    handle.setAttribute("r",7); handle.setAttribute("fill","#c0a060");
+    handle.setAttribute("stroke","#9a7a40"); handle.setAttribute("stroke-width","1.5");
+    svg.appendChild(handle);
+
+    const entrance=create("text");
+    entrance.setAttribute("x",550); entrance.setAttribute("y",1025);
     entrance.setAttribute("text-anchor","middle"); entrance.setAttribute("class","entrance");
     entrance.textContent="🚪 출입구";
     svg.appendChild(entrance);
